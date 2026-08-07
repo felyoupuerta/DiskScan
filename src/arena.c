@@ -1,6 +1,6 @@
 //MI HEADER
 #include "arena.h"
-
+//Felipe Angeriz 19-07-2026
 #include<stdlib.h>
 #include<string.h>
 #include<stdint.h>
@@ -45,7 +45,6 @@ static Bloque *bloque_nuevo(size_t tam)
     return b;
 
 }
-
 Arena *arena_new(size_t tam_bloque)
 {
     if(tam_bloque == 0)

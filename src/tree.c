@@ -1,9 +1,9 @@
 #include "tree.h"
-
+//Felipe Angeriz Estefanell
 #include <stdlib.h>
 #include <string.h>
 
-/* ---------- Pool de cadenas ---------- */
+
 
 static bool pool_init(Pool *p, size_t cap)
 {
@@ -12,7 +12,7 @@ static bool pool_init(Pool *p, size_t cap)
     if (!p->buf) return false;
     p->cap   = cap;
     p->usado = 0;
-    p->buf[p->usado++] = '\0';   /* offset 0 = cadena vacía */
+    p->buf[p->usado++] = '\0';   
     return true;
 }
 
@@ -23,7 +23,7 @@ static void pool_destroy(Pool *p)
     p->cap = p->usado = 0;
 }
 
-/* >>> pool_add  */
+
 
 static uint32_t pool_add(Pool *p, const char *s)
 {
@@ -48,11 +48,6 @@ static uint32_t pool_add(Pool *p, const char *s)
 
 }
 
-
-
-
-
-/* ---------- Árbol ---------- */
 
 bool arbol_init(Arbol *t, uint32_t cap_ini)
 {
@@ -138,7 +133,7 @@ size_t arbol_ruta(const Arbol *t, uint32_t idx, char *dst, size_t cap)
     size_t np = 0;
 
     for (uint32_t i = idx; i != NODO_NULO; i = t->v[i].padre) {
-        if (np == 256) return (size_t)-1;       /* demasiado profundo */
+        if (np == 256) return (size_t)-1;       
         pila[np++] = i;
     }
 

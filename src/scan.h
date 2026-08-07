@@ -1,5 +1,6 @@
 #ifndef SCAN_H
 #define SCAN_H
+//Felipe ANgeriz Estefanell
 #include "hardlink.h"
 #include "tree.h"
 
