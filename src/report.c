@@ -4,7 +4,7 @@
 #include <stdlib.h>    
 #include <string.h>
 #include <inttypes.h>
-
+#define BARRA_ANCHO 20
 static void formatear(uint64_t bytes,char *dst,size_t cap)
 {
 
@@ -31,8 +31,8 @@ static void imprimir(const Arbol *t, uint32_t idx, int nivel, int prof_max, uint
         formatear(t->v[h].bytes, buf, sizeof buf);
 
         double pct = total_raiz ? (100.0 * (double)t->v[h].bytes / (double)total_raiz) : 0.0;
-
-        printf("%*s%10s  %5.1f%%  %s\n",nivel * 2, "",buf,pct,arbol_nombre(t, h));
+        int n = (int)(pct * BARRA_ANCHO / 100.0);
+        printf("%*s%10s  %.*s%.*s  %5.1f%%  %s\n",nivel * 2, "",buf,n * 3, "████████████████████",(BARRA_ANCHO - n) * 3, "░░░░░░░░░░░░░░░░░░░░",pct,arbol_nombre(t, h));
 
         if (nivel + 1 < prof_max)
         {
