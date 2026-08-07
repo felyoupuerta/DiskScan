@@ -42,7 +42,7 @@ uint64_t scan_dir(Ctx *c,int dir_fd,uint32_t idx,int profundidad)
     //SI RECOGEMOS BIEN LOS DATOS MULTIPLICAMOS EL ST_BLOCKS X 512 Y LO ASIGNAMOS A LA
     //VARIABLE TOTAL.
     total = (uint64_t)diskinfo.st_blocks * 512;
-     
+    
     struct dirent *e;
     while((e = readdir(dir)) != NULL)
     {
@@ -87,13 +87,20 @@ uint64_t scan_dir(Ctx *c,int dir_fd,uint32_t idx,int profundidad)
         else
         {
             c->n_fich++;
-
-            if (c->dedup && ne.st_nlink > 1 && hl_visto_o_insertar(c->hl, ne.st_dev, ne.st_ino))
+            uint32_t indice1 = arbol_add(c->arbol,e->d_name,(uint16_t)ne.st_mode,idx);
+            if(indice1 == NODO_NULO)
             {
+                c->n_errores++;
                 continue;
             }
+            uint64_t bytes = (uint64_t)ne.st_blocks * 512;
+            if (c->dedup && ne.st_nlink > 1 && hl_visto_o_insertar(c->hl, ne.st_dev, ne.st_ino))
+            {
+                bytes = 0;
+            }
 
-            total += (uint64_t)ne.st_blocks * 512;
+            c->arbol->v[indice1].bytes = bytes;
+            total += bytes;
         }
 
     }
