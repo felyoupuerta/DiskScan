@@ -1,0 +1,94 @@
+/* ============================================================
+ *  DiskScan — opciones.c
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
+#include "opciones.h"
+
+#include <stdio.h>
+#include <stdlib.h>   
+#include <getopt.h>   
+#include <string.h>
+
+
+static const struct option largas[] = {
+    {"depth",    required_argument, NULL, 'd'},
+    {"bytes",    no_argument,       NULL, 'b'},
+    {"one-fs",   no_argument,       NULL, 'x'},
+    {"cross-fs", no_argument,       NULL,  1 },
+    {"total",    no_argument,       NULL, 't'},
+    {"help",     no_argument,       NULL, 'h'},
+    {0, 0, 0, 0}
+};
+void opciones_uso(const char *prog)
+{
+    printf("Uso: %s [OPCIONES] RUTA\n\n", prog);
+    printf("Analiza el espacio ocupadao por un directorio o fichero.\n");
+    printf("Opciones: \n");
+    printf("-d,  --depth N        niveles a mostrar(por defecto 1)\n");
+    printf("-b,  --bytes          mostrar bytes exactos sin formatear\n");
+    printf("-x,  --one-fs         no cruzar puntos de montaje (activado pòr defecto)\n");
+    printf("     --cross-fs       PERMITIR cruzar puntos de montaje\n");
+    printf("-t,  --total          mostrar solo el total en GB (sin arbol)\n");
+    printf("-h,  --help           mostrar esta ayuda\n");
+}
+
+
+bool opciones_parse(Opciones *o, int argc, char **argv)
+{
+    o->ruta = NULL;
+    o->prof_max = 1;
+    o->bytes_exactos = false;
+    o->un_solo_fs = true;
+    o->solo_total = false;
+
+    int c;
+
+    while((c = getopt_long(argc,argv,"d:bxth",largas,NULL)) != -1)
+    {
+        switch (c)
+        {
+            case 'd':
+                o->prof_max = (int)strtol(optarg, NULL, 10);
+                if (o->prof_max < 1)
+                {
+                    fprintf(stderr, "La profundidad debe ser al menos 1\n");
+                    return false;
+                }
+                break;
+
+            case 'b':
+                o->bytes_exactos = true;
+                break;
+            case 'x':
+                o->un_solo_fs = true;
+                break;
+            case 't':
+                o->solo_total = true;
+                break;
+            case 1:
+                o->un_solo_fs = false;
+                break;
+            case 'h':
+                opciones_uso(argv[0]);
+                exit(EXIT_SUCCESS);
+            
+            case '?':
+                opciones_uso(argv[0]);
+                return false;
+            default:
+                break;
+        }
+    }
+    if(optind < argc)
+    {
+        o->ruta = argv[optind];
+    }
+    else
+    {
+        fprintf(stderr,"Falta la ruta\n");
+        opciones_uso(argv[0]);
+        return false;
+    }
+
+    return true;
+}

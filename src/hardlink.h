@@ -1,6 +1,9 @@
+/* ============================================================
+ *  DiskScan — hardlink.h
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
 #ifndef HARDLINK_H
 #define HARDLINK_H
-//Felipe ANgeriz Estefanell
 
 #include<stdbool.h>
 #include<stdint.h>

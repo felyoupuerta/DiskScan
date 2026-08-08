@@ -1,6 +1,9 @@
+/* ============================================================
+ *  DiskScan — scan.h
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
 #ifndef SCAN_H
 #define SCAN_H
-//Felipe ANgeriz Estefanell
 #include "hardlink.h"
 #include "tree.h"
 

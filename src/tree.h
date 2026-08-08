@@ -1,6 +1,9 @@
+/* ============================================================
+ *  DiskScan — tree.h
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
 #ifndef TREE_H
 #define TREE_H
-//Felipe Angeriz
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

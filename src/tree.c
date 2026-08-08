@@ -1,5 +1,8 @@
+/* ============================================================
+ *  DiskScan — tree.c
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
 #include "tree.h"
-//Felipe Angeriz Estefanell
 #include <stdlib.h>
 #include <string.h>
 

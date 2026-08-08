@@ -1,6 +1,9 @@
+/* ============================================================
+ *  DiskScan — scan.c
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
 //HEADER MIO
 #include "scan.h"
-//Felipe Angeriz 07-08-2026
 //HEADERS SISTEMA
 #include<sys/types.h>
 #include<sys/stat.h>

@@ -1,6 +1,9 @@
+/* ============================================================
+ *  DiskScan — report.h
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
 #ifndef REPORT_H
 #define REPORT_H
-//Felipe Angeriz 06-08-2026
 #include <stdint.h>
 #include "tree.h"
 

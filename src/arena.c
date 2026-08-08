@@ -1,6 +1,9 @@
+/* ============================================================
+ *  DiskScan — arena.c
+ *  Hecho por Felipe Angeriz
+ * ============================================================ */
 //MI HEADER
 #include "arena.h"
-//Felipe Angeriz 19-07-2026
 #include<stdlib.h>
 #include<string.h>
 #include<stdint.h>
