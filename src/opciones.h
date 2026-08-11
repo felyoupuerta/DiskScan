@@ -13,6 +13,7 @@ typedef struct {
     bool bytes_exactos;
     bool un_solo_fs;
     bool solo_total;
+    int top_ficheros;
 } Opciones;
 
 bool opciones_parse(Opciones *o, int argc, char **argv);

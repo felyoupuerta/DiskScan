@@ -7,6 +7,8 @@
 #include <stdlib.h>    
 #include <string.h>
 #include <inttypes.h>
+#include <sys/stat.h>
+
 #define BARRA_ANCHO 20
 static void formatear(uint64_t bytes,char *dst,size_t cap)
 {
@@ -105,6 +107,68 @@ void report_ordenar(Arbol *t, uint32_t raiz)
     for (i = 0; i < n; i++)
     {
         report_ordenar(t, arr[i]);
+    }
+
+    free(arr);
+}
+void report_ficheros_top(Arbol *t, int limite, bool exactos)
+{
+    uint32_t n = 0;
+    for (uint32_t i = 0; i < t->n; i++)
+    {
+        if (!S_ISDIR(t->v[i].modo))
+        {
+            n++;
+        }
+    }
+
+    if (n == 0)
+    {
+        printf("No se han encontrado ficheros.\n");
+        return;
+    }
+
+    uint32_t *arr = malloc((size_t)n * sizeof *arr);
+    if (arr == NULL)
+    {
+        return;
+    }
+
+    uint32_t j = 0;
+    for (uint32_t i = 0; i < t->n; i++)
+    {
+        if (!S_ISDIR(t->v[i].modo))
+        {
+            arr[j++] = i;
+        }
+    }
+
+    g_arbol = t;
+    qsort(arr, n, sizeof *arr, cmp_nodos);
+
+    uint32_t tope = ((uint32_t)limite < n) ? (uint32_t)limite : n;
+
+    char buf[32];
+    char ruta[4096];
+    for (uint32_t i = 0; i < tope; i++)
+    {
+        uint32_t idx = arr[i];
+
+        if (exactos)
+        {
+            snprintf(buf, sizeof buf, "%" PRIu64, t->v[idx].bytes);
+        }
+        else
+        {
+            formatear(t->v[idx].bytes, buf, sizeof buf);
+        }
+
+        if (arbol_ruta(t, idx, ruta, sizeof ruta) == (size_t)-1)
+        {
+            snprintf(ruta, sizeof ruta, "%s", arbol_nombre(t, idx));
+        }
+
+        printf("%10s  %s\n", buf, ruta);
     }
 
     free(arr);

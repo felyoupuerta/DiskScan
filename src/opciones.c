@@ -8,6 +8,7 @@
 #include <stdlib.h>   
 #include <getopt.h>   
 #include <string.h>
+#include<errno.h>
 
 
 static const struct option largas[] = {
@@ -16,8 +17,8 @@ static const struct option largas[] = {
     {"one-fs",   no_argument,       NULL, 'x'},
     {"cross-fs", no_argument,       NULL,  1 },
     {"total",    no_argument,       NULL, 't'},
+    {"afondo",   required_argument,       NULL, 'a'},
     {"help",     no_argument,       NULL, 'h'},
-    
     {0, 0, 0, 0}
 };
 void opciones_uso(const char *prog)
@@ -30,24 +31,36 @@ void opciones_uso(const char *prog)
     printf("-x,  --one-fs         no cruzar puntos de montaje (activado pòr defecto)\n");
     printf("     --cross-fs       PERMITIR cruzar puntos de montaje\n");
     printf("-t,  --total          mostrar solo el total en GB (sin arbol)\n");
+    printf("-a,  --afondo N       mostrar el top de ficheros mas pesados N es la cantidad que quieres mostrar\n");
     printf("-h,  --help           mostrar esta ayuda\n");
+    
 }
 
 
 bool opciones_parse(Opciones *o, int argc, char **argv)
 {
+    //INICIALIZO TODO EL STRUCT
     o->ruta = NULL;
     o->prof_max = 1;
     o->bytes_exactos = false;
     o->un_solo_fs = true;
     o->solo_total = false;
+    o->top_ficheros = 0;
 
     int c;
 
-    while((c = getopt_long(argc,argv,"d:bxth",largas,NULL)) != -1)
+    while((c = getopt_long(argc,argv,"d:bxtha",largas,NULL)) != -1)
     {
         switch (c)
         {
+            case 'a':
+                o->top_ficheros = (int)strtol(optarg,NULL,10);
+                if(o->top_ficheros < 1)
+                {
+                    fprintf(stderr,"Error: %s", strerror(errno));
+                    return false;
+                }
+                break;
             case 'd':
                 o->prof_max = (int)strtol(optarg, NULL, 10);
                 if (o->prof_max < 1)
