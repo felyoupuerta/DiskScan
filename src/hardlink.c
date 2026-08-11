@@ -89,7 +89,7 @@ bool hl_visto_o_insertar(HLSet *s, dev_t dev, ino_t ino)
 {
     if(!s)
     {
-        return NULL;
+        return false;
     }
 
     uint64_t h = hash_clave(dev,ino);

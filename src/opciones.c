@@ -17,6 +17,7 @@ static const struct option largas[] = {
     {"cross-fs", no_argument,       NULL,  1 },
     {"total",    no_argument,       NULL, 't'},
     {"help",     no_argument,       NULL, 'h'},
+    
     {0, 0, 0, 0}
 };
 void opciones_uso(const char *prog)

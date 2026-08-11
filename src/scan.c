@@ -46,6 +46,8 @@ uint64_t scan_dir(Ctx *c,int dir_fd,uint32_t idx,int profundidad)
     //SI RECOGEMOS BIEN LOS DATOS MULTIPLICAMOS EL ST_BLOCKS X 512 Y LO ASIGNAMOS A LA
     //VARIABLE TOTAL.
     total = (uint64_t)diskinfo.st_blocks * 512;
+    uint64_t total_ap = (uint64_t)diskinfo.st_size;
+    uint32_t total_fich = 0;
     
     struct dirent *e;
     while((e = readdir(dir)) != NULL)
@@ -86,6 +88,8 @@ uint64_t scan_dir(Ctx *c,int dir_fd,uint32_t idx,int profundidad)
                 continue;
             }
             total += scan_dir(c,feliopen,indice,profundidad + 1);
+            total_ap += c->arbol->v[indice].bytes_ap;
+            total_fich += c->arbol->v[indice].n_fich;
         }
         //RAMA DEL FICHERO
         else
@@ -98,17 +102,24 @@ uint64_t scan_dir(Ctx *c,int dir_fd,uint32_t idx,int profundidad)
                 continue;
             }
             uint64_t bytes = (uint64_t)ne.st_blocks * 512;
+            uint64_t bytes_ap = (uint64_t)ne.st_size;
             if (c->dedup && ne.st_nlink > 1 && hl_visto_o_insertar(c->hl, ne.st_dev, ne.st_ino))
             {
                 bytes = 0;
+                bytes_ap = 0;
             }
 
             c->arbol->v[indice1].bytes = bytes;
+            c->arbol->v[indice1].bytes_ap = bytes_ap;
             total += bytes;
+            total_ap += bytes_ap;
+            total_fich++;
         }
 
     }
     closedir(dir);
     c->arbol->v[idx].bytes = total;
+    c->arbol->v[idx].bytes_ap = total_ap;
+    c->arbol->v[idx].n_fich = total_fich;
     return total;
 }
