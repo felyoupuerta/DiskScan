@@ -12,9 +12,12 @@ DEP  := -MMD -MP
 
 BASE := $(STD) $(WARN) $(DEFS) $(INC) $(DEP)
 
-REL_CFLAGS := -O2 -DNDEBUG
-DBG_CFLAGS := -O0 -g3
-DBG_LDLIBS := 
+# Se añade -static a LDFLAGS para incrustar glibc completa
+STATIC_LDFLAGS := -static
+
+REL_CFLAGS  := -O2 -DNDEBUG
+DBG_CFLAGS  := -O0 -g3
+DBG_LDLIBS  := 
 
 BIN := dsk
 
@@ -38,14 +41,18 @@ all: test
 	@echo ">> Todavía no existe src/main.c: solo se han construido los tests."
 endif
 
-# ---- Binario release ----
+# ---- Binario release (Estático con glibc incluida) ----
 $(BIN): $(REL_OBJ)
-	$(CC) $(REL_OBJ) -o $@
+	$(CC) $(STATIC_LDFLAGS) $(REL_OBJ) -o $@
 
 build/rel/%.o: src/%.c | build/rel
 	$(CC) $(BASE) $(REL_CFLAGS) -c $< -o $@
 
-# ---- Objetos con sanitizers (para tests y para 'make debug') ----
+# ---- Regla explícita para compilación estática ----
+static: clean $(BIN)
+	@echo ">> Binario $(BIN) compilado estáticamente con glibc."
+
+# ---- Objetos de depuración ----
 build/dbg/%.o: src/%.c | build/dbg
 	$(CC) $(BASE) $(DBG_CFLAGS) -c $< -o $@
 
@@ -60,14 +67,13 @@ test: $(TEST_BIN)
 	@echo "=========== TESTS ==========="
 	@fallos=0; \
 	for t in $(TEST_BIN); do \
-	    printf '%-28s ' "$$(basename $$t)"; \
-	    if ASAN_OPTIONS=detect_leaks=1 ./$$t > /tmp/ds_test.log 2>&1; then \
-	        echo "PASS"; \
-	    else \
-	        echo "FAIL"; cat /tmp/ds_test.log; fallos=1; \
-	    fi; \
+		printf '%-28s ' "$$(basename $$t)"; \
+		if ASAN_OPTIONS=detect_leaks=1 ./$$t > /tmp/ds_test.log 2>&1; then \
+			echo "PASS"; \
+		else \
+			echo "FAIL"; cat /tmp/ds_test.log; fallos=1; \
+		fi; \
 	done; \
-	echo "============================="; \
 	exit $$fallos
 
 # ---- Utilidades ----
@@ -99,7 +105,7 @@ clean:
 distclean: clean
 	rm -rf /tmp/dtest
 
-.PHONY: all debug test run valgrind fixture clean distclean
+.PHONY: all static debug test run valgrind fixture clean distclean
 .DELETE_ON_ERROR:
 
 -include $(wildcard build/rel/*.d build/dbg/*.d)
