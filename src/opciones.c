@@ -3,8 +3,6 @@
  *  Hecho por Felipe Angeriz
  * ============================================================ */
 #include "opciones.h"
-
-#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>   

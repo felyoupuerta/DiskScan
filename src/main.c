@@ -32,7 +32,6 @@ int main(int argc, char **argv)
         ui_banner();
 
         bool comp = opciones_parse(&opciones, argc,argv);
-        printf("[DEBUG] top_ficheros configurado en: %d\n", opciones.top_ficheros);
         if(comp == false)
         {
             exit(EXIT_FAILURE);

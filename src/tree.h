@@ -13,9 +13,9 @@
 
 typedef struct {
     uint64_t bytes;       /* espacio real acumulado del subárbol   */
-    uint64_t bytes_ap;    /* tamaño aparente acumulado (st_size)   */
+    uint64_t bytes_ap;    /* tamaño aparente acumulado  */
     uint32_t nombre_off;  /* offset del nombre en el pool          */
-    uint32_t padre;       /* índice del padre, o NODO_NULO         */
+    uint32_t padre;       /* índice del padre,NODO_NULO         */
     uint32_t hijo;        /* índice del PRIMER hijo, o NODO_NULO   */
     uint32_t hermano;     /* índice del SIGUIENTE hermano          */
     uint32_t n_fich;      /* ficheros acumulados en el subárbol    */

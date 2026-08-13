@@ -168,8 +168,11 @@ void report_ficheros_top(Arbol *t, int limite, bool exactos)
             snprintf(ruta, sizeof ruta, "%s", arbol_nombre(t, idx));
         }
 
-        printf("%10s  %s\n", buf, ruta);
+        //printf("%10s  %s\n", buf, ruta);
+        double pct = t->v[0].bytes ? (100.0 * (double)t->v[idx].bytes / (double)t->v[0].bytes) : 0.0;
+        int nbar = (int)(pct * BARRA_ANCHO /100.0);
+        printf("%10s  %.*s%.*s  %5.1f%%  %s\n",buf,nbar * 3,"████████████████████",(BARRA_ANCHO - nbar) * 3,"░░░░░░░░░░░░░░░░░░░░",
+        pct,ruta);
     }
-
     free(arr);
 }
