@@ -4,8 +4,9 @@
  * ============================================================ */
 #include "opciones.h"
 
+#define _GNU_SOURCE
+#include <stdlib.h>
 #include <stdio.h>
-#include <stdlib.h>   
 #include <getopt.h>   
 #include <string.h>
 #include<errno.h>
@@ -49,12 +50,19 @@ bool opciones_parse(Opciones *o, int argc, char **argv)
 
     int c;
 
-    while((c = getopt_long(argc,argv,"d:bxtha",largas,NULL)) != -1)
+    while((c = getopt_long(argc,argv,"d:bxtha:",largas,NULL)) != -1)
     {
         switch (c)
         {
             case 'a':
+                if(optarg == NULL)
+                {
+                    printf("I'M HERE?!? Something has gone pretty, pretty WRONG\n");
+                    fprintf(stderr,"Error: %s",strerror(errno));
+                    return false;
+                }
                 o->top_ficheros = (int)strtol(optarg,NULL,10);
+                
                 if(o->top_ficheros < 1)
                 {
                     fprintf(stderr,"Error: %s", strerror(errno));

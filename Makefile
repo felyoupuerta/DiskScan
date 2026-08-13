@@ -13,8 +13,8 @@ DEP  := -MMD -MP
 BASE := $(STD) $(WARN) $(DEFS) $(INC) $(DEP)
 
 REL_CFLAGS := -O2 -DNDEBUG
-DBG_CFLAGS := -O0 -g3 -fsanitize=address,undefined -fno-omit-frame-pointer
-DBG_LDLIBS := -fsanitize=address,undefined
+DBG_CFLAGS := -O0 -g3
+DBG_LDLIBS := 
 
 BIN := dsk
 

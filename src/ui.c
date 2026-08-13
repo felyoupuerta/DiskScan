@@ -32,8 +32,9 @@ void ui_banner(void)
     printf("%s", verde);
     printf("\n    \xe2\x95\x94"); repetir_utf8("\xe2\x95\x90", UI_ANCHO); printf("\xe2\x95\x97\n");
     printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "");
-    printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   [ D I S K S C A N ]  -  v1.0");
+    printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   [ Escaneo de disco ]  -  v1.0");
     printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   Analizador de espacio en disco");
+    printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   Felipe Angeriz - Agosto 2026");
     printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "");
     printf("    \xe2\x95\x9a"); repetir_utf8("\xe2\x95\x90", UI_ANCHO); printf("\xe2\x95\x9d\n");
     printf("%s\n", reset);
@@ -71,7 +72,7 @@ static bool leer_si_no(const char *pregunta, bool valor_defecto)
 bool ui_menu_interactivo(Opciones *o, char *ruta_buf, size_t cap)
 {
     ui_banner();
-
+    
     printf("  Asistente guiado. Pulsa Enter para aceptar el valor\n");
     printf("  por defecto que aparece entre corchetes.\n\n");
 

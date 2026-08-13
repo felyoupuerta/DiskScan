@@ -32,7 +32,7 @@ int main(int argc, char **argv)
         ui_banner();
 
         bool comp = opciones_parse(&opciones, argc,argv);
-
+        printf("[DEBUG] top_ficheros configurado en: %d\n", opciones.top_ficheros);
         if(comp == false)
         {
             exit(EXIT_FAILURE);
@@ -91,6 +91,11 @@ int main(int argc, char **argv)
     {
         double gb = (double)total / (1024.0 * 1024.0 * 1024.0);
         printf("Total: %.2f GB\n", gb);
+    }
+    else if(opciones.top_ficheros)
+    {
+        report_ficheros_top(&arbol,opciones.top_ficheros,opciones.bytes_exactos);
+        printf("\nTotal:%" PRIu64 " bytes\n",total );
     }
     else
     {
