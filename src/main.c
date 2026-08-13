@@ -22,11 +22,24 @@ int main(int argc, char **argv)
 
     if(argc == 1)
     {
+        ui_banner();
+
+        bool comp = opciones_parse(&opciones, argc,argv);
+        if(comp == false)
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /*
+    {
+    
         if(ui_menu_interactivo(&opciones, ruta_interactiva, sizeof ruta_interactiva) == false)
         {
             exit(EXIT_FAILURE);
         }
     }
+    */
     else
     {
         ui_banner();
