@@ -5,8 +5,7 @@ Recorre un directorio, deduplica hardlinks y muestra un árbol ordenado por tama
 
 ## Por qué existe
 
-Este proyecto lo hice yo solo, de cero, mientras estudio el Grado Superior de ASIR en Madrid y trabajo como soporte de Microinformática y administrador de sistemas Linux. Quería una herramienta propia para ver dónde se va el espacio en mis
-servidores y de paso entender de verdad cómo se gestiona memoria y syscalls en C — sin
+Este proyecto lo hice yo solo partiendo desde cero, mientras estudio el Grado Superior de ASIR en Madrid y trabajo como soporte de Microinformática y administrador de sistemas Linux. Quería una herramienta propia para ver dónde se va el espacio en mis maquinas y entender de verdad cómo se gestiona memoria y syscalls en C — sin
 depender de librerías que hicieran el trabajo sucio por mí. Arena allocator, deduplicación de
 hardlinks con hashset propio, árbol en memoria por índices en vez de punteros sueltos: cada
 pieza la pensé y la rompí varias veces hasta que quedó bien. Es el proyecto personal del que
