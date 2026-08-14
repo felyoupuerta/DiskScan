@@ -18,13 +18,14 @@ más orgulloso estoy hasta ahora.
 make            
 make debug      
 make test       
-```
+
 
 ## Uso
 
 ```bash
-./dsk [OPCIONES] RUTA     # sin argumentos: menú interactivo
+./dsk [OPCIONES] RUTA
 ```
+
 | Opción | Descripción |
 |--------|-------------|
 | `-d, --depth N`  | niveles a mostrar (por defecto 1) |
@@ -35,9 +36,8 @@ make test
 | `-a, --afondo N` | mostrar el top N de ficheros más pesados |
 | `-m, --menu`     | ejecutar el menú interactivo |
 | `-h, --help`     | ayuda |
-```
 
-
+``` c
 Esta es la estructura estática que uso en el  codigo para declarar las opciones de argumentos:
 
     {"depth",    required_argument, NULL, 'd'},
@@ -56,8 +56,8 @@ Si el argumento va a necesitar parámetros deberás poner los ":" luego de la le
 Y luego modificar el case, par tratar esa opcion con sus respectivas funciones que puedes crear tú.
 ```
 
-## Ejemplo
-
+## Ejemploç
 ```bash
 ./dsk -d 2 /home/felipe
 ```
+
