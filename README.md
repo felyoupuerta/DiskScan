@@ -56,7 +56,7 @@ Si el argumento va a necesitar parámetros deberás poner los ":" luego de la le
 Y luego modificar el case, par tratar esa opcion con sus respectivas funciones que puedes crear tú.
 ```
 
-## Ejemploç
+## Ejemplo
 ```bash
 ./dsk -d 2 /home/felipe
 ```
