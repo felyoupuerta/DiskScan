@@ -19,7 +19,6 @@ void   hl_free(HLSet *s);
 
 
 
-
 /*
 TRUE:  ya estaba no sumar tamaño
 FALSE: es nuevo suma; queda registrado
