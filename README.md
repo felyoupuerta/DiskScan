@@ -25,7 +25,6 @@ make test
 ```bash
 ./dsk [OPCIONES] RUTA     # sin argumentos: menú interactivo
 ```
-```
 | Opción | Descripción |
 |--------|-------------|
 | `-d, --depth N`  | niveles a mostrar (por defecto 1) |
@@ -36,6 +35,8 @@ make test
 | `-a, --afondo N` | mostrar el top N de ficheros más pesados |
 | `-m, --menu`     | ejecutar el menú interactivo |
 | `-h, --help`     | ayuda |
+```
+
 
 Esta es la estructura estática que uso en el  codigo para declarar las opciones de argumentos:
 
