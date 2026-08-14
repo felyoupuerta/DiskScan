@@ -36,7 +36,7 @@ void ui_banner(void)
     printf("\n    \xe2\x95\x94"); repetir_utf8("\xe2\x95\x90", UI_ANCHO); printf("\xe2\x95\x97\n");
     printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "");
     printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   [ Escaneo de disco ]  -  v3.1");
-    printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   Analizador de espacio en disco");
+    printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   Analisis dispositivos de alamacenamiento");
     printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "   Felipe Angeriz - Agosto 2026");
     printf("    \xe2\x95\x91%-*s\xe2\x95\x91\n", UI_ANCHO, "");
     printf("    \xe2\x95\x9a"); repetir_utf8("\xe2\x95\x90", UI_ANCHO); printf("\xe2\x95\x9d\n");
@@ -72,10 +72,16 @@ static bool leer_si_no(const char *pregunta, bool valor_defecto)
     return (linea[0] == 's' || linea[0] == 'S');
 }
 
-bool ui_menu_interactivo(Opciones *o, char *ruta_buf, size_t cap)
+bool ui_menu_interactivo(Opciones *o, char *ruta_buf, size_t cap,int flagbanner)
 {
-    ui_banner();
-    
+    if(flagbanner == 1)
+    {
+        ui_banner();
+    }
+    else
+    {
+
+    }
     printf("  Asistente guiado. Pulsa Enter para aceptar el valor\n");
     printf("  por defecto que aparece entre corchetes.\n\n");
 

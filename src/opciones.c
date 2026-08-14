@@ -3,6 +3,7 @@
  *  Hecho por Felipe Angeriz
  * ============================================================ */
 #include "opciones.h"
+#include "ui.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>   
@@ -16,8 +17,9 @@ static const struct option largas[] = {
     {"one-fs",   no_argument,       NULL, 'x'},
     {"cross-fs", no_argument,       NULL,  1 },
     {"total",    no_argument,       NULL, 't'},
-    {"afondo",   required_argument,       NULL, 'a'},
+    {"afondo",   required_argument, NULL, 'a'},
     {"help",     no_argument,       NULL, 'h'},
+    {"menu",     no_argument,       NULL, 'm'},
     {0, 0, 0, 0}
 };
 void opciones_uso(const char *prog)
@@ -31,6 +33,7 @@ void opciones_uso(const char *prog)
     printf("     --cross-fs       PERMITIR cruzar puntos de montaje\n");
     printf("-t,  --total          mostrar solo el total en GB (sin arbol)\n");
     printf("-a,  --afondo N       mostrar el top de ficheros mas pesados N es la cantidad que quieres mostrar\n");
+    printf("-m,  --menu           Ejecutar el menu interactivo (Más sencillo que por parámtros)\n");
     printf("-h,  --help           mostrar esta ayuda\n");
     
 }
@@ -47,8 +50,8 @@ bool opciones_parse(Opciones *o, int argc, char **argv)
     o->top_ficheros = 0;
 
     int c;
-
-    while((c = getopt_long(argc,argv,"d:bxtha:",largas,NULL)) != -1)
+    char ruta_interactiva[4096];
+    while((c = getopt_long(argc,argv,"d:bxtmha:",largas,NULL)) != -1)
     {
         switch (c)
         {
@@ -87,6 +90,14 @@ bool opciones_parse(Opciones *o, int argc, char **argv)
                 break;
             case 1:
                 o->un_solo_fs = false;
+                break;
+            case 'm':
+                bool execute_menu = ui_menu_interactivo(o,ruta_interactiva,sizeof(ruta_interactiva),0);
+                printf("[DEBUG] Ruta Interactiva guardada: %s\n",ruta_interactiva);
+                if(execute_menu == false)
+                {
+                    exit(EXIT_FAILURE);
+                }
                 break;
             case 'h':
                 opciones_uso(argv[0]);

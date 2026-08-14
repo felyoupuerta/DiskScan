@@ -18,7 +18,7 @@
 int main(int argc, char **argv)
 {
     Opciones opciones;
-    char ruta_interactiva[4096];
+    //char ruta_interactiva[4096];
 
     if(argc == 1)
     {
@@ -31,15 +31,6 @@ int main(int argc, char **argv)
         }
     }
     
-    /*
-    {
-    
-        if(ui_menu_interactivo(&opciones, ruta_interactiva, sizeof ruta_interactiva) == false)
-        {
-            exit(EXIT_FAILURE);
-        }
-    }
-    */
     else
     {
         ui_banner();

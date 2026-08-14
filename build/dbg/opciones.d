@@ -1,2 +1,3 @@
-build/dbg/opciones.o: src/opciones.c src/opciones.h
+build/dbg/opciones.o: src/opciones.c src/opciones.h src/ui.h
 src/opciones.h:
+src/ui.h:
