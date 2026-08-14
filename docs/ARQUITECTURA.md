@@ -1,245 +1,287 @@
-# Arquitectura de DiskScan
-
-Documentación técnica del funcionamiento interno. Pensada para quien vaya a leer o modificar
-el código fuente en [`src/`](../src).
-
-## 1. Módulos y dependencias
-
-Quién incluye a quién (`#include` propios, no del sistema):
-
-```mermaid
-graph TD
-    main[main.c]
-    opciones[opciones.c / opciones.h]
-    ui[ui.c / ui.h]
-    scan[scan.c / scan.h]
-    report[report.c / report.h]
-    tree[tree.c / tree.h]
-    hardlink[hardlink.c / hardlink.h]
-    arena[arena.c / arena.h]
-
-    main --> opciones
-    main --> ui
-    main --> scan
-    main --> report
-
-    opciones -.-> ui
-    ui --> opciones
-
-    scan --> tree
-    scan --> hardlink
-    report --> tree
-    hardlink --> arena
-
-    style main fill:#4c566a,color:#fff
-```
-
-`opciones.c` llama a `ui_menu_interactivo()` cuando se pasa `-m/--menu` (línea punteada), y a
-la vez `ui.h` incluye `opciones.h` porque necesita el tipo `Opciones`. No es un ciclo real —
-solo las cabeceras (`.h`) definen las dependencias de compilación, y ninguna se incluye a sí
-misma indirectamente — pero es la zona más acoplada del código y la primera candidata a romper
-si se refactoriza.
-
-`arena.c` es la única pieza sin dependencias propias: es el módulo base sobre el que se apoya
-`hardlink.c`.
-
-## 2. Estructuras de datos principales
-
-```mermaid
 classDiagram
+    direction TB
+
     class Opciones {
-        +ruta: char*
-        +prof_max: int
-        +bytes_exactos: bool
-        +un_solo_fs: bool
-        +solo_total: bool
-        +top_ficheros: int
+        +char* ruta
+        +int prof_max
+        +bool bytes_exactos
+        +bool un_solo_fs
+        +bool solo_total
+        +int top_ficheros
     }
 
     class Ctx {
-        +raiz_dev: dev_t
-        +un_solo_fs: bool
-        +n_fich: uint64_t
-        +n_dirs: uint64_t
-        +n_errores: uint64_t
-        +hl: HLSet*
-        +dedup: bool
-        +arbol: Arbol*
+        +dev_t raiz_dev
+        +bool un_solo_fs
+        +uint64_t n_fich
+        +uint64_t n_dirs
+        +uint64_t n_errores
+        +HLSet* hl
+        +bool dedup
+        +Arbol* arbol
     }
 
     class Arbol {
-        +v: Nodo[]
-        +n: uint32_t
-        +cap: uint32_t
-        +cadenas: Pool
+        +Nodo[] v
+        +uint32_t n
+        +uint32_t cap
+        +Pool cadenas
     }
 
     class Nodo {
-        +bytes: uint64_t
-        +bytes_ap: uint64_t
-        +nombre_off: uint32_t
-        +padre: uint32_t
-        +hijo: uint32_t
-        +hermano: uint32_t
-        +n_fich: uint32_t
-        +modo: uint16_t
+        +uint64_t bytes
+        +uint64_t bytes_ap
+        +uint32_t nombre_off
+        +uint32_t padre
+        +uint32_t hijo
+        +uint32_t hermano
+        +uint32_t n_fich
+        +uint16_t modo
     }
 
     class Pool {
-        +buf: char*
-        +usado: size_t
-        +cap: size_t
+        +char* buf
+        +size_t usado
+        +size_t cap
     }
 
     class HLSet {
-        +cajones: Entrada*[]
-        +n_cajones: size_t
-        +n: size_t
-        +arena: Arena*
+        +Entrada*[] cajones
+        +size_t n_cajones
+        +size_t n
+        +Arena* arena
     }
 
     class Entrada {
-        +sig: Entrada*
-        +dev: dev_t
-        +ino: ino_t
+        +Entrada* sig
+        +dev_t dev
+        +ino_t ino
     }
 
     class Arena {
-        +actual: Bloque*
-        +tam_bloque: size_t
-        +reservado: size_t
-        +repartido: size_t
+        +Bloque* actual
+        +size_t tam_bloque
+        +size_t reservado
+        +size_t repartido
     }
 
     class Bloque {
-        +sig: Bloque*
-        +usado: size_t
-        +tam: size_t
-        +datos: byte[]
+        +Bloque* sig
+        +size_t usado
+        +size_t tam
+        +byte[] datos
     }
 
+    %% Relaciones de dependencia y composición
     Ctx --> Arbol : arbol
     Ctx --> HLSet : hl
     Ctx ..> Opciones : construido a partir de
 
-    Arbol "1" --> "*" Nodo : v[]
-    Arbol --> Pool : cadenas
+    Arbol "1" *-- "*" Nodo : v[]
+    Arbol *-- Pool : cadenas
 
-    HLSet --> Arena : arena
-    HLSet "1" --> "*" Entrada : cajones[]
+    HLSet o-- Arena : arena
+    HLSet "1" *-- "*" Entrada : cajones[]
 
-    Arena "1" --> "*" Bloque : lista enlazada
-```
+    Arena "1" *-- "*" Bloque : lista enlazada
 
-Puntos clave de este diseño:
 
-- **`Arbol` no usa punteros entre nodos**, usa índices `uint32_t` dentro de `v[]` (`padre`,
-  `hijo`, `hermano`). Es una lista enlazada de hijos, no un array de hijos por nodo — cada nodo
-  solo conoce a su primer hijo y a su siguiente hermano.
-- **`Pool` guarda todos los nombres de fichero concatenados** en un único buffer; cada `Nodo`
-  solo guarda el offset (`nombre_off`) dentro de ese buffer. Evita un `malloc` por nombre.
-- **`HLSet` (deduplicación de hardlinks)** es un hashset de `(dev, ino)` con listas de
-  colisión, cuyas entradas (`Entrada`) viven en un `Arena` en vez de mallocs sueltos.
-- **`Arena`** reserva memoria en bloques grandes (`Bloque`) y reparte trozos alineados dentro
-  de cada bloque; solo libera todo de golpe al final (`arena_free`), nunca entrada por entrada.
+classDiagram
+    direction TB
 
-## 3. Flujo principal (`main`)
+    class Opciones {
+        +char* ruta
+        +int prof_max
+        +bool bytes_exactos
+        +bool un_solo_fs
+        +bool solo_total
+        +int top_ficheros
+    }
 
-```mermaid
+    class Ctx {
+        +dev_t raiz_dev
+        +bool un_solo_fs
+        +uint64_t n_fich
+        +uint64_t n_dirs
+        +uint64_t n_errores
+        +HLSet* hl
+        +bool dedup
+        +Arbol* arbol
+    }
+
+    class Arbol {
+        +Nodo[] v
+        +uint32_t n
+        +uint32_t cap
+        +Pool cadenas
+    }
+
+    class Nodo {
+        +uint64_t bytes
+        +uint64_t bytes_ap
+        +uint32_t nombre_off
+        +uint32_t padre
+        +uint32_t hijo
+        +uint32_t hermano
+        +uint32_t n_fich
+        +uint16_t modo
+    }
+
+    class Pool {
+        +char* buf
+        +size_t usado
+        +size_t cap
+    }
+
+    class HLSet {
+        +Entrada*[] cajones
+        +size_t n_cajones
+        +size_t n
+        +Arena* arena
+    }
+
+    class Entrada {
+        +Entrada* sig
+        +dev_t dev
+        +ino_t ino
+    }
+
+    class Arena {
+        +Bloque* actual
+        +size_t tam_bloque
+        +size_t reservado
+        +size_t repartido
+    }
+
+    class Bloque {
+        +Bloque* sig
+        +size_t usado
+        +size_t tam
+        +byte[] datos
+    }
+
+    %% Relaciones de dependencia y composición
+    Ctx --> Arbol : arbol
+    Ctx --> HLSet : hl
+    Ctx ..> Opciones : construido a partir de
+
+    Arbol "1" *-- "*" Nodo : v[]
+    Arbol *-- Pool : cadenas
+
+    HLSet o-- Arena : arena
+    HLSet "1" *-- "*" Entrada : cajones[]
+
+    Arena "1" *-- "*" Bloque : lista enlazada
+
 sequenceDiagram
-    actor Usuario
-    participant main
-    participant opciones as opciones_parse
-    participant ui as ui_menu_interactivo
-    participant scan as scan_dir
-    participant report as report_*
+    autonumber
+    actor U as Usuario
+    participant M as main
+    participant O as opciones_parse
+    participant UI as ui_menu_interactivo
+    participant S as scan_dir
+    participant R as report_*
 
-    Usuario->>main: ./dsk [opciones] RUTA
-    main->>main: ui_banner()
-    main->>opciones: opciones_parse(argc, argv)
+    U->>M: ./dsk [opciones] RUTA
+    M->>M: ui_banner()
+    M->>O: opciones_parse(argc, argv)
 
-    opt se pasó -m / --menu
-        opciones->>ui: ui_menu_interactivo(&o, ...)
-        ui-->>opciones: Opciones rellenadas por el usuario
+    opt Se pasó -m / --menu
+        O->>UI: ui_menu_interactivo(&o, ...)
+        UI-->>O: Opciones rellenadas por el usuario
     end
 
-    opciones-->>main: Opciones o
+    O-->>M: Opciones o
 
-    main->>main: open(ruta, O_DIRECTORY|O_NOFOLLOW)
-    main->>main: fstat() -> raiz_dev
-    main->>main: hl_new() / arbol_init()
-    main->>main: arbol_add(raiz)
-
-    main->>scan: scan_dir(ctx, fd_raiz, idx_raiz, 0)
-    Note over scan: recorre el árbol de directorios<br/>recursivamente (ver diagrama 4)
-    scan-->>main: total bytes reales
-
-    alt --total
-        main->>Usuario: imprime total en GB
-    else --afondo N
-        main->>report: report_ficheros_top(N)
-        report-->>Usuario: top N ficheros más pesados
-    else por defecto
-        main->>report: report_ordenar() + report_arbol()
-        report-->>Usuario: árbol ordenado por tamaño
+    rect rgb(46, 52, 64)
+        Note over M: Inicialización de Contexto
+        M->>M: open(ruta, O_DIRECTORY|O_NOFOLLOW)
+        M->>M: fstat() -> raiz_dev
+        M->>M: hl_new() / arbol_init()
+        M->>M: arbol_add(raiz)
     end
 
-    main->>main: arbol_destroy() / hl_free()
-```
+    M->>S: scan_dir(ctx, fd_raiz, idx_raiz, 0)
+    Note over S: Recorre el árbol recursivamente<br/>(Ver Diagrama 4)
+    S-->>M: Total bytes reales
 
-## 4. Algoritmo de escaneo (`scan_dir`)
+    alt Opciones de salida: --total
+        M->>U: Imprime total en GB
+    else Opciones de salida: --afondo N
+        M->>R: report_ficheros_top(N)
+        R-->>U: Muestra Top N ficheros más pesados
+    else Salida por defecto
+        M->>R: report_ordenar() + report_arbol()
+        R-->>U: Muestra árbol ordenado por tamaño
+    end
 
-```mermaid
+    rect rgb(46, 52, 64)
+        Note over M: Limpieza de Memoria
+        M->>M: arbol_destroy() / hl_free()
+    end
+
+
 flowchart TD
-    A[scan_dir recibe: fd del directorio, índice del nodo, profundidad] --> B{profundidad > SCAN_PROFUNDIDAD_MAX?}
-    B -- sí --> Z[return 0]
-    B -- no --> C[fdopendir + fstat del propio directorio]
+    A([scan_dir recibe: fd, índice, prof]) --> B{profundidad ><br/>SCAN_PROFUNDIDAD_MAX?}
+    
+    B -- Sí --> Z([return 0])
+    B -- No --> C[fdopendir + fstat del directorio]
     C --> D[total = st_blocks * 512]
-    D --> E{quedan entradas por leer? readdir}
-    E -- no --> Y[Guarda bytes/bytes_ap/n_fich en el nodo<br/>return total]
-    E -- sí --> F{". o "..?}
-    F -- sí --> E
-    F -- no --> G[fstatat de la entrada]
-    G --> H{es directorio?}
+    
+    D --> E{¿Quedan entradas<br/>por leer? readdir}
+    E -- No --> Y[Guarda bytes / bytes_ap / n_fich en nodo]
+    Y --> Y_ret([return total])
 
-    H -- sí --> I{un_solo_fs && dev distinto de raiz_dev?}
-    I -- sí, distinto FS --> E
-    I -- no --> J[arbol_add del subdirectorio]
-    J --> K[openat + scan_dir recursivo]
-    K --> L[acumula total, bytes_ap y n_fich del subárbol]
-    L --> E
+    E -- Sí --> F{¿Es '.' o '..'? =}
+    F -- Sí --> E
+    F -- No --> G[fstatat de la entrada]
+    
+    G --> H{¿Es directorio?}
 
-    H -- no, es fichero --> M[arbol_add del fichero]
-    M --> N{dedup activo && st_nlink > 1?}
-    N -- sí --> O{hl_visto_o_insertar: ya visto?}
-    O -- sí --> P[bytes = 0, bytes_ap = 0<br/>no se vuelve a contar]
-    O -- no --> Q[se registra dev+ino, cuenta normal]
-    N -- no --> Q
-    P --> R[acumula bytes en el nodo y en total]
-    Q --> R
-    R --> E
-```
+    %% Rama Directorios
+    subgraph DirBranch["Tratamiento de Directorios"]
+        H -- Sí --> I{un_solo_fs &&<br/>dev != raiz_dev?}
+        I -- Sí (distinto FS) --> E
+        I -- No --> J[arbol_add del subdirectorio]
+        J --> K[openat + scan_dir recursivo]
+        K --> L[Acumula total, bytes_ap y n_fich]
+        L --> E
+    end
 
-Las dos decisiones que definen el comportamiento de DiskScan frente a `du` están ahí: el corte
-por punto de montaje (`un_solo_fs`) y la deduplicación de hardlinks (`dedup` + `HLSet`), ambas
-resueltas por fichero/directorio durante el mismo recorrido, sin una segunda pasada.
+    %% Rama Ficheros
+    subgraph FileBranch["Tratamiento de Ficheros / Hardlinks"]
+        H -- No (Fichero) --> M[arbol_add del fichero]
+        M --> N{dedup activo &&<br/>st_nlink > 1?}
+        
+        N -- Sí --> O{hl_visto_o_insertar:<br/>¿Ya visto?}
+        O -- Sí --> P[bytes = 0, bytes_ap = 0<br/>No se vuelve a contar]
+        O -- No --> Q[Registra dev+ino, cuenta normal]
+        N -- No --> Q
 
-## 5. Ejemplo de árbol por índices
+        P --> R[Acumula bytes en nodo y total]
+        Q --> R
+        R --> E
+    end
 
-Para visualizar cómo queda `Arbol.v[]` tras escanear `/home/felipe` con dos subcarpetas:
+    %% Estilos de Nodos
+    style A fill:#5E81AC,color:#FFF,stroke-width:0px
+    style Z fill:#BF616A,color:#FFF,stroke-width:0px
+    style Y_ret fill:#A3BE8C,color:#2E3440,stroke-width:0px
+    style DirBranch fill:#2E3440,stroke:#4C566A,stroke-width:1px
+    style FileBranch fill:#2E3440,stroke:#4C566A,stroke-width:1px
 
-```mermaid
-flowchart TD
-    R["v[0] home/felipe<br/>hijo=1"]
-    A["v[1] docs<br/>hermano=2, hijo=3"]
-    B["v[2] fotos<br/>hermano=NODO_NULO"]
-    C["v[3] tesis.pdf<br/>hermano=NODO_NULO"]
+flowchart LR
+    R["<b>v[0] home/felipe</b><hr/>hijo: 1<br/>hermano: NODO_NULO"]
+    A["<b>v[1] docs</b><hr/>hijo: 3<br/>hermano: 2"]
+    B["<b>v[2] fotos</b><hr/>hijo: NODO_NULO<br/>hermano: NODO_NULO"]
+    C["<b>v[3] tesis.pdf</b><hr/>hijo: NODO_NULO<br/>hermano: NODO_NULO"]
 
-    R -->|hijo| A
+    R ==>|hijo| A
     A -->|hermano| B
-    A -->|hijo| C
-```
+    A ==>|hijo| C
 
-No hay array de hijos por nodo: `docs` solo apunta a su primer hijo (`tesis.pdf`) y a su
-siguiente hermano (`fotos`); recorrer todos los hijos de un nodo es seguir la cadena de
-`hermano` a partir de `hijo`.
+    %% Estilos de los nodos
+    style R fill:#5E81AC,color:#ECEFF4,stroke:#81A1C1,stroke-width:2px
+    style A fill:#4C566A,color:#ECEFF4,stroke:#D8DEE9,stroke-width:1px
+    style B fill:#4C566A,color:#ECEFF4,stroke:#D8DEE9,stroke-width:1px
+    style C fill:#D08770,color:#2E3440,stroke:#EBCB8B,stroke-width:1px
