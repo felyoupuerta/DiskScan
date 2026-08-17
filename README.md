@@ -5,13 +5,12 @@ Recorre un directorio, deduplica hardlinks y muestra un árbol ordenado por tama
 
 ## Por qué existe
 
-Este proyecto lo hice yo solo partiendo desde cero, mientras estudio el Grado Superior de ASIR en Madrid y trabajo como soporte de Microinformática y administrador de sistemas Linux. Quería una herramienta propia para ver dónde se va el espacio en mis maquinas y entender de verdad cómo se gestiona memoria y syscalls en C — sin
-depender de librerías que hicieran el trabajo sucio por mí. Arena allocator, deduplicación de
+Este proyecto lo hice yo Felipe , mientras estudio el Grado Superior de ASIR en Madrid y trabajo como soporte de Microinformática y administrador de sistemas Linux. Quería programar mi propia herramienta prpara ver dónde se va el espacio en mis maquinas y entender de verdad cómo se gestiona memoria y syscalls en C, sin
+depender de librerías que hicieran el trabajo sucio por mí. Hice un arena allocator, la deduplicación de
 hardlinks con hashset propio, árbol en memoria por índices en vez de punteros sueltos: cada
 pieza la pensé y la rompí varias veces hasta que quedó bien. Es el proyecto personal del que
 más orgulloso estoy hasta ahora.
-
-— Felipe Angeriz Estefanell
+Espero que guste y muchas gracias por pararte a leer esto.
 
 ## Compilar
 make            
@@ -59,9 +58,3 @@ Y luego modificar el case, par tratar esa opcion con sus respectivas funciones q
 ```bash
 ./dsk -d 2 /home/felipe
 ```
-
-## Arquitectura
-
-Módulos, estructuras de datos y el algoritmo de escaneo, con diagramas:
-[docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
-
