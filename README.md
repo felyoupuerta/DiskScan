@@ -61,3 +61,8 @@ Y luego modificar el case, par tratar esa opcion con sus respectivas funciones q
 ./dsk -d 2 /home/felipe
 ```
 
+## Arquitectura
+
+Módulos, estructuras de datos y el algoritmo de escaneo, con diagramas:
+[docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+

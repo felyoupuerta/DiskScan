@@ -111,12 +111,27 @@ void report_ordenar(Arbol *t, uint32_t raiz)
 
     free(arr);
 }
-void report_ficheros_top(Arbol *t, int limite, bool exactos)
+/* Cuento cuántos "padre" tengo que subir desde idx hasta llegar a raiz.
+ * Uso el mismo criterio de nivel que imprimir(): los hijos directos de
+ * la raíz quedan en profundidad 1, así el -a queda consistente con el -d. */
+static int profundidad_desde(const Arbol *t, uint32_t idx, uint32_t raiz)
+{
+    int nivel = 0;
+    while (idx != raiz && idx != NODO_NULO)
+    {
+        idx = t->v[idx].padre;
+        nivel++;
+    }
+    return nivel;
+}
+
+void report_ficheros_top(Arbol *t, uint32_t raiz, int prof_max, int limite, bool exactos)
 {
     uint32_t n = 0;
     for (uint32_t i = 0; i < t->n; i++)
     {
-        if (!S_ISDIR(t->v[i].modo))
+        /* Acá filtro por profundidad para que -a respete el -d, como me pidió Felipe */
+        if (!S_ISDIR(t->v[i].modo) && profundidad_desde(t, i, raiz) <= prof_max)
         {
             n++;
         }
@@ -137,7 +152,7 @@ void report_ficheros_top(Arbol *t, int limite, bool exactos)
     uint32_t j = 0;
     for (uint32_t i = 0; i < t->n; i++)
     {
-        if (!S_ISDIR(t->v[i].modo))
+        if (!S_ISDIR(t->v[i].modo) && profundidad_desde(t, i, raiz) <= prof_max)
         {
             arr[j++] = i;
         }
@@ -169,7 +184,8 @@ void report_ficheros_top(Arbol *t, int limite, bool exactos)
         }
 
         //printf("%10s  %s\n", buf, ruta);
-        double pct = t->v[0].bytes ? (100.0 * (double)t->v[idx].bytes / (double)t->v[0].bytes) : 0.0;
+        /* Uso los bytes de la raíz que me pasaron, no el índice 0 a lo bruto */
+        double pct = t->v[raiz].bytes ? (100.0 * (double)t->v[idx].bytes / (double)t->v[raiz].bytes) : 0.0;
         int nbar = (int)(pct * BARRA_ANCHO /100.0);
         printf("%10s  %.*s%.*s  %5.1f%%  %s\n",buf,nbar * 3,"████████████████████",(BARRA_ANCHO - nbar) * 3,"░░░░░░░░░░░░░░░░░░░░",
         pct,ruta);

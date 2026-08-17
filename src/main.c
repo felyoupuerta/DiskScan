@@ -97,7 +97,8 @@ int main(int argc, char **argv)
     }
     else if(opciones.top_ficheros)
     {
-        report_ficheros_top(&arbol,opciones.top_ficheros,opciones.bytes_exactos);
+        /* le paso la raíz y la profundidad del -d para que el top respete el nivel pedido */
+        report_ficheros_top(&arbol,indice,opciones.prof_max,opciones.top_ficheros,opciones.bytes_exactos);
         printf("\nTotal:%" PRIu64 " bytes\n",total );
     }
     else
